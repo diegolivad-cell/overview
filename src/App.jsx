@@ -122,15 +122,25 @@ function PortfolioCard({ project, hasError, onVideoError }) {
 export default function App() {
   const [videoError, setVideoError] = useState(false)
   const [portfolioVideoErrors, setPortfolioVideoErrors] = useState({})
+  const [isMuted, setIsMuted] = useState(true)
+  const videoRef = useRef(null)
   const { scrollYProgress } = useScroll()
   const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '20%'])
   const videoScale = useTransform(scrollYProgress, [0, 1], [1.08, 1.2])
+
+  const toggleMute = () => {                           // ← Cambio 2
+  const video = videoRef.current
+  if (!video) return
+  video.muted = !video.muted
+  setIsMuted(video.muted)
+}
 
   return (
     <main className="min-h-screen relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
         {!videoError ? (
           <motion.video
+           ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
             autoPlay
             muted
@@ -342,6 +352,59 @@ export default function App() {
         </FadeIn>
       </motion.section>
       </div>
+      
+    {/* Mute button — fixed bottom-right, visible on all scroll */}
+      {!videoError && (
+        <button
+          onClick={toggleMute}
+          aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            zIndex: 50,
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: 'rgba(8, 11, 20, 0.75)',
+            border: '1px solid rgba(215, 166, 37, 0.45)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#d7a625',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+            boxShadow: '0 0 16px rgba(215, 166, 37, 0.15)',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'rgba(215, 166, 37, 0.8)'
+            e.currentTarget.style.boxShadow = '0 0 24px rgba(215, 166, 37, 0.3)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'rgba(215, 166, 37, 0.45)'
+            e.currentTarget.style.boxShadow = '0 0 16px rgba(215, 166, 37, 0.15)'
+          }}
+        >
+          {isMuted ? (
+            // Muted icon
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          ) : (
+            // Sound on icon
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+            </svg>
+          )}
+        </button>
+      )}
     </main>
   )
 }
